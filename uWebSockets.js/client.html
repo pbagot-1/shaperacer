@@ -5,6 +5,8 @@
 				let new_lines = [];
                 let count = 0;
 				
+                const decoder = new TextDecoder();
+                
 				function main() {
 					/* Connect to the server */
 					ws = new WebSocket('ws://localhost:9001');
@@ -16,43 +18,90 @@
 		
 					/* For every message we receive */
 					ws.onmessage = (message) => {
-                        console.log(message.data);
+                        //console.log("MSG DATA", message);
+  
+                        msgObj = JSON.parse(message.data);
+                        //console.log("MSG OBJ", msgObj);
+                        //console.log("MSG OBJ0", msgObj[0]);
+                        switch (msgObj[0]) {
 						/* Request a new animation frame on first draw */
-                        if (new_lines.length == 0) {
-							window.requestAnimationFrame(() => {
-                                console.log(new_lines.length);
-								ctx.beginPath();
-		
-								new_lines.forEach((li) => {
-                                    ctx.moveTo(li[0], li[1]);
-                                    console.log(li[0], li[1]);
-                                    var length = li.length - 2;
+                        case "drawing":
+                            if (new_lines.length == 0) {
+                                window.requestAnimationFrame(() => {
+                                    //console.log(new_lines.length);
+            
+                                    new_lines.forEach((li) => {
+                                        ctx.beginPath();
                                     
-                                    var x = 2;
-                                    var y = 3;
-                                        while (length >= 1) {
-                                        ctx.lineTo(li[x], li[y]);
-                                        console.log(li[x], li[y]);
-                                        length = length / 2;
-                                        x += 2;
-                                        y += 2;
-                                        };
-                                    ctx.stroke();
-                                    count++;
-                                    console.log(count);
-                                    console.log("STROKED");
+                                        if (li.length == 5) {
+                                        ctx.arc(li[0], li[1], li[2], li[3], li[4]);
+                                        } 
+                                        else {
+                                        ctx.moveTo(li[0], li[1]);
+                                        //console.log(li[0], li[1]);
+                                        var length = li.length - 2;
+                                        
+                                        var x = 2;
+                                        var y = 3;
+                                            while (length >= 0) {
+                                            ctx.lineTo(li[x], li[y]);
+                                            console.log(li[x], li[y]);
+                                            length = length - 2;
+                                            x += 2;
+                                            y += 2;
+                                            };
+                                        }
+                                            
+                                        ctx.stroke();
+                                        count++;
+                                        //console.log(count);
+                                        //console.log("STROKED");
+                                        });
+                                    new_lines = [];
                                     });
-								new_lines = [];
-                                });
-		
-								
-							
-								
-							}
-						/* Add this draw to the pending buffer */
-                        
-						new_lines.push(new Uint16Array(message.data));
-                         console.log("added");
+            
+                                    
+                                
+                                    
+                                }
+                            /* Add this draw to the pending buffer */
+                            f = new Uint16Array(Object.values(msgObj[1]));
+                            //console.log("AA", f);
+                            new_lines.push(f);
+                            //console.log("added");
+                            break;
+                        case "scoreboard":
+                            console.log('inside scoreboard');
+                            d = function(){
+                                var ul = document.createElement('ul');
+                                ul.setAttribute('id','proList');
+
+                                var t, tt;
+                                productList = (Object.entries(msgObj[1]));
+
+                                function removeAllChildNodes(parent) {
+                                    while (parent.firstChild) {
+                                        parent.removeChild(parent.firstChild);
+                                    }
+                                }
+                                removeAllChildNodes(document.getElementById('renderList'));
+                                document.getElementById('renderList').appendChild(ul);
+                                productList.forEach(renderProductList);
+
+                                function renderProductList(element, index, arr) {
+                                    var li = document.createElement('li');
+                                    li.setAttribute('class','item');
+                                    
+                                    ul.appendChild(li);
+                                    
+                                    t = document.createTextNode(element);
+                                    
+                                    li.innerHTML=li.innerHTML + element;
+                                }
+                            };
+                            d();
+                            console.log('CALLED');
+                        }
 					};
 		
 					canvas = document.getElementById('can');
@@ -92,7 +141,7 @@
                     function fadeOut() {
                     ctx.fillStyle = "rgba(255,255,255,0.3)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    setTimeout(fadeOut,100);
+                    setTimeout(fadeOut,200);
                     }
 
                     fadeOut();
@@ -101,12 +150,7 @@
                     input.addEventListener("keyup", updateValue);
 
                     function updateValue(e) {
-                      console.log(e);
-                      console.log("caught event");
-                      console.log(e.target.value);
-                      console.log(e.keyCode);
                       if (e.keyCode == 13) {
-                        console.log("got here");
                         ws.send(e.target.value);
                         e.target.value = '';
                       }
@@ -116,7 +160,8 @@
 			</script>
 	</head>
     <body onload="main()" style="margin: 0; height: 100vh; width: 100vw">
+        <div id="renderList" style="position:fixed;top:10%;left:50%; height:10%; width: 20%;"></div>
         <canvas id="can" width="720" height="480" style="height: 100%; width: 100%"></canvas>
-        <input placeholder="Enter some text" name="name"/>
+        <input style='position:fixed;top:90%;left:50%;transform: translate(-50%, -50%);' placeholder="Enter some text" name="name"/>
     </body>
 </html>
