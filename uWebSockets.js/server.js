@@ -10,12 +10,17 @@ const decoder = new TextDecoder();
 var flag = false;
 var count = 0;
 var mainLinkedList = new importLinked.ExpiringLinkedList(3);
-const wsMap=new Map();
-const scoreMap=new Map();
+
+const scoreMap = new Map();
+const wsMap = new Map();
+var searchingPlayers = [];
+
+const gameMap = new Map();
 // an "app" is much like Express.js apps with URL routes,
 // here we handle WebSocket traffic on the wildcard "/*" route
 var diffy = 0;
 function create_UUID(a, b) { for (b = a = ''; a++ < 36; b += a * 51 & 52 ? (a ^ 15 ? 8 ^ Math.random() * (a ^ 20 ? 16 : 4) : 4).toString(16) : '-'); return b }
+function createRoomName() {return 'lobby' + create_UUID();}
 
 const mapToObj = m => {
   return Array.from(m).reduce((obj, [key, value]) => {
@@ -211,10 +216,11 @@ const app = uWS.App().ws('/*', {  // handle messages from client
   open: (socket, req) => {
     socket.uuid = create_UUID();
     console.log("from creation: ", socket.uuid);
-    scoreMap.set(socket.uuid, 0);
+    wsMap.set(socket.uuid, socket);
+    //scoreMap.set(socket.uuid, 0);
 
     /* For now we only have one canvas */
-    if (flag == false) {
+    /*if (flag == false) {
          setInterval(function() {
              shape = shapeGen(); 
              shape2 = shapeGen();
@@ -245,8 +251,8 @@ const app = uWS.App().ws('/*', {  // handle messages from client
              console.log("TEST TING", JSON.stringify(["drawing", shape[1]]));
         }, 2000);
     }
-    flag = true;
-    socket.subscribe("drawing/canvas1");
+    flag = true;*/
+    //socket.subscribe("drawing/canvas1");
   },
   message: (socket, message, isBinary) => {
     var d = new Date();
@@ -263,7 +269,17 @@ const app = uWS.App().ws('/*', {  // handle messages from client
     m = decoder.decode(message);
     /* In this simplified example we only have drawing commands */
     console.log("from message: ", m, socket.uuid);
-    mainLinkedList.each(check(socket, m, app));
+    if (m == "play") {
+        console.log("Got to play");
+        searchingPlayers.push(socket.uuid);
+        if (searchingPlayers.length == 2) {
+            searchingPlayers.forEach(item => (wsMap.get(item)).subscribe("testyroom"));
+            searchingPlayers = [];
+        }
+        
+    }
+    app.publish("testyroom", "IN ROOM NOW!", false); 
+    //mainLinkedList.each(check(socket, m, app));
   },
   
   close: (socket, code, message) => {

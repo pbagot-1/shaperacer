@@ -19,7 +19,7 @@
 					/* For every message we receive */
 					ws.onmessage = (message) => {
                         //console.log("MSG DATA", message);
-  
+                        console.log("MESSAGE", message);
                         msgObj = JSON.parse(message.data);
                         //console.log("MSG OBJ", msgObj);
                         //console.log("MSG OBJ0", msgObj[0]);
@@ -141,7 +141,7 @@
                     function fadeOut() {
                     ctx.fillStyle = "rgba(255,255,255,0.3)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    setTimeout(fadeOut,200);
+                    setTimeout(fadeOut,100);
                     }
 
                     fadeOut();
@@ -156,11 +156,22 @@
                       }
                       
                     }
+                    
+                    const playButton = document.querySelector('button');
+                    playButton.addEventListener("click", requestGame);
+                    
+                    function requestGame(e) {
+                        console.log("button");
+                        ws.send('play');
+                      }
+                      
+                    
 				}
 			</script>
 	</head>
     <body onload="main()" style="margin: 0; height: 100vh; width: 100vw">
         <div id="renderList" style="position:fixed;top:10%;left:50%; height:10%; width: 20%;"></div>
+        <button>Success</button>
         <canvas id="can" width="720" height="480" style="height: 100%; width: 100%"></canvas>
         <input style='position:fixed;top:90%;left:50%;transform: translate(-50%, -50%);' placeholder="Enter some text" name="name"/>
     </body>
