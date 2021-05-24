@@ -101,6 +101,22 @@
                             };
                             d();
                             console.log('CALLED');
+                            break;
+                        case "GAME START":
+                            num = 1;  
+                            document.getElementById("countdown").innerHTML = num.toString();
+                            num++;
+                            var x = setInterval(function() {
+                                if (num == 4) {
+                                    clearInterval(x);
+                                    document.getElementById("countdown").innerHTML = "";
+                                    return;
+                                }
+                                // Output the result in an element with id="demo"
+                                document.getElementById("countdown").innerHTML = num.toString();
+                                num++;
+                                // If the count down is over, write some text 
+                            }, 1000);
                         }
 					};
 		
@@ -170,6 +186,7 @@
 			</script>
 	</head>
     <body onload="main()" style="margin: 0; height: 100vh; width: 100vw">
+        <p id="countdown" style='position:fixed;top:50%;left:50%;transform: translate(-50%, -50%);'></p>
         <div id="renderList" style="position:fixed;top:10%;left:50%; height:10%; width: 20%;"></div>
         <button>Success</button>
         <canvas id="can" width="720" height="480" style="height: 100%; width: 100%"></canvas>
