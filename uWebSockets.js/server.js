@@ -42,6 +42,16 @@ function generateNewRoom(roomName, socketList) {
     gameMap.set(roomName, [newScoreMap, newLinkedList]);
 }
 
+// shuts down room after someone wins
+function shutDownRoom(roomName, socket, app) {
+    msg = JSON.stringify(["GAME OVER", socket.uuid]);
+    app.publish(socket.room, msg, false);  
+    clearInterval(gameMap.get(roomName)[2]);  
+    var uuidsToUnsub = Array.from(gameMap.get(socket.room)[0].keys());
+    uuidsToUnsub.forEach(item => delete wsMap.get(item).room);    
+    gameMap.delete(roomName);
+}
+
 function check(socket, message, app) {
     var found = false;
     function socketCheck(item) {
@@ -54,13 +64,11 @@ function check(socket, message, app) {
                     item[1].set(socket.uuid, true);
                     console.log("current score of " + socket.uuid + " " + currentScoreMap.get(socket.uuid));
                     found = true;
-                    
-                    //var scoreMapUpdate = new Map([...scoreMap.entries()].sort());
-                    //console.log("SMU", scoreMapUpdate);
                     msg = JSON.stringify(["scoreboard", mapToObj(currentScoreMap)]);
-                    //gng = JSON.parse(msg);
-                    //console.log(gng);
                     app.publish(socket.room, msg, false); 
+                    if (currentScoreMap.get(socket.uuid) == 3) {
+                        shutDownRoom(socket.room, socket, app);
+                    }
                 }
             }
         }
@@ -160,7 +168,7 @@ const app = uWS.App().ws('/*', {  // handle messages from client
     m = decoder.decode(message);
     /* In this simplified example we only have drawing commands */
     console.log("from message: ", m, socket.uuid);
-    if (m == "play") {
+    if (m == "play" && typeof socket.room == "undefined") {
         console.log("Got to play");
         searchingPlayers.push(socket);
         if (searchingPlayers.length == 2) {

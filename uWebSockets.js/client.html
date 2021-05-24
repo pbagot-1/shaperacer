@@ -103,20 +103,27 @@
                             console.log('CALLED');
                             break;
                         case "GAME START":
-                            num = 1;  
-                            document.getElementById("countdown").innerHTML = num.toString();
-                            num++;
+                            num = 3;  
+                            ctx.font = "120px Verdana";
+                            ctx.strokeText(num.toString(),320,200);
+                            num--;
                             var x = setInterval(function() {
-                                if (num == 4) {
+                                if (num == 0) {
                                     clearInterval(x);
-                                    document.getElementById("countdown").innerHTML = "";
                                     return;
                                 }
+                                ctx.font = "120px Verdana";
+                                ctx.strokeText(num.toString(),320,200);
                                 // Output the result in an element with id="demo"
-                                document.getElementById("countdown").innerHTML = num.toString();
-                                num++;
+                                num--;
                                 // If the count down is over, write some text 
                             }, 1000);
+                            break;
+                            
+                        case "GAME OVER":
+                            document.getElementById("countdown").innerHTML = msgObj[1] + " WINS";
+                            var node = document.createElement("LI");
+                            break;
                         }
 					};
 		
@@ -181,6 +188,18 @@
                         ws.send('play');
                       }
                       
+                    const backButton = document.getElementsByTagName('button')[1];
+                    backButton.addEventListener("click", backAction);
+                    
+                    function backAction(e) {
+                        function removeAllChildNodes(parent) {
+                            while (parent.firstChild) {
+                                parent.removeChild(parent.firstChild);
+                            }
+                        }
+                        removeAllChildNodes(document.getElementById('renderList'));
+                        document.getElementById("countdown").innerHTML = "";
+                      }
                     
 				}
 			</script>
@@ -188,7 +207,8 @@
     <body onload="main()" style="margin: 0; height: 100vh; width: 100vw">
         <p id="countdown" style='position:fixed;top:50%;left:50%;transform: translate(-50%, -50%);'></p>
         <div id="renderList" style="position:fixed;top:10%;left:50%; height:10%; width: 20%;"></div>
-        <button>Success</button>
+        <button>Play</button>
+        <button>Back</button>
         <canvas id="can" width="720" height="480" style="height: 100%; width: 100%"></canvas>
         <input style='position:fixed;top:90%;left:50%;transform: translate(-50%, -50%);' placeholder="Enter some text" name="name"/>
     </body>
