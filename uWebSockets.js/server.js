@@ -66,7 +66,7 @@ function check(socket, message, app) {
                     found = true;
                     msg = JSON.stringify(["scoreboard", mapToObj(currentScoreMap)]);
                     app.publish(socket.room, msg, false); 
-                    if (currentScoreMap.get(socket.uuid) == 3) {
+                    if (currentScoreMap.get(socket.uuid) == 100) {
                         shutDownRoom(socket.room, socket, app);
                     }
                 }
@@ -170,7 +170,9 @@ const app = uWS.App().ws('/*', {  // handle messages from client
     console.log("from message: ", m, socket.uuid);
     if (m == "play" && typeof socket.room == "undefined") {
         console.log("Got to play");
-        searchingPlayers.push(socket);
+        if (!searchingPlayers.includes(socket)) {
+            searchingPlayers.push(socket);
+        }
         if (searchingPlayers.length == 2) {
             new_room = createRoomName();
             searchingPlayers.forEach(item => {item.subscribe(new_room); item.room = new_room;});
@@ -198,6 +200,10 @@ const app = uWS.App().ws('/*', {  // handle messages from client
     //msg = JSON.stringify(["scoreboard", mapToObj(scoreMap)]);
     //app.publish("drawing/canvas1", msg, false); 
     console.log("CLOSED");
+    var index = searchingPlayers.indexOf(socket);
+    if (index > -1) {
+      searchingPlayers.splice(index, 1);
+    }
   }
 });
 
