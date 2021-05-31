@@ -124,45 +124,11 @@ const app = uWS.App().ws('/*', {  // handle messages from client
 
   open: (socket, req) => {
     socket.uuid = create_UUID();
+    socket.playerName = socket.uuid
     console.log("from creation: ", socket.uuid);
     wsMap.set(socket.uuid, socket);
-    //scoreMap.set(socket.uuid, 0);
-
-    /* For now we only have one canvas */
-    /*if (flag == false) {
-         setInterval(function() {
-             shape = shapeGen(); 
-             shape2 = shapeGen();
-             shape3 = shapeGen();
-             app.publish("drawing/canvas1", JSON.stringify(["drawing", shape[1]]), false); 
-             app.publish("drawing/canvas1", JSON.stringify(["drawing", shape2[1]]), false); 
-             app.publish("drawing/canvas1", JSON.stringify(["drawing", shape3[1]]), false); 
-             myDict = new Map();
-             var keys = Array.from(scoreMap.keys());
-             keys.forEach(function(key){
-                myDict.set(key, false);    
-             });
-             
-             myDict2 = new Map();
-             keys.forEach(function(key){
-                myDict2.set(key, false);    
-             });
-             
-             myDict3 = new Map();
-             keys.forEach(function(key){
-                myDict3.set(key, false);    
-             });             
-             mainLinkedList.push([shape[0], myDict]); 
-             mainLinkedList.push([shape2[0], myDict2]); 
-             mainLinkedList.push([shape3[0], myDict3]); 
-             count++; 
-             console.log(count);
-             console.log("TEST TING", JSON.stringify(["drawing", shape[1]]));
-        }, 2000);
-    }
-    flag = true;*/
-    //socket.subscribe("drawing/canvas1");
   },
+  
   message: (socket, message, isBinary) => {
     var d = new Date();
     var n = d.getTime();
