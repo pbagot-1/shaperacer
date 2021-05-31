@@ -2,14 +2,14 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-function shapeGen() {
+export function shapeGen() {
 var choice = getRandomInt(6) + 1;    
 
 switch (choice){
   case 1:
     // Square that starts somewhere randomly
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = getRandomInt(215) + 255;
+    var y = getRandomInt(40) + 50;
 
     var line1 = new Uint16Array([x, y]);
 
@@ -30,8 +30,8 @@ switch (choice){
   
   case 2:
     // Triangle
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = getRandomInt(215) + 255;
+    var y = getRandomInt(40) + 50;
 
     var line1 = new Uint16Array([x, y]);
 
@@ -53,8 +53,8 @@ switch (choice){
     
   case 3:
     // Triangle
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = getRandomInt(215) + 255;
+    var y = getRandomInt(40) + 50;
 
     var line1 = new Uint16Array([x, y]);
     x = x + 25;
@@ -87,8 +87,8 @@ switch (choice){
     
   case 4:
     // Arrow
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = getRandomInt(215) + 255;
+    var y = getRandomInt(40) + 50;
 
     var line1 = new Uint16Array([x, y]);
     x = x + 25;
@@ -119,8 +119,8 @@ switch (choice){
     
   case 5:
     // Diamond
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = getRandomInt(215) + 255;
+    var y = getRandomInt(40) + 50;
 
     var line1 = new Uint16Array([x, y]);
     
@@ -145,15 +145,11 @@ switch (choice){
     
   case 6:
     // Circle
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = getRandomInt(215) + 255;
+    var y = getRandomInt(40) + 50;
 
     var line1 = new Uint16Array([x, y, 50, 0, 2 * Math.PI + 1]);
     //ctx.arc(100, 75, 50, 0, 2 * Math.PI);
     return ["c", line1];
 }
 }
-
-
-var exports = exports || {};
-exports.shapeGen = shapeGen;

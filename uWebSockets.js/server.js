@@ -66,7 +66,7 @@ function check(socket, message, app) {
                     found = true;
                     msg = JSON.stringify(["scoreboard", mapToObj(currentScoreMap)]);
                     app.publish(socket.room, msg, false); 
-                    if (currentScoreMap.get(socket.uuid) == 100) {
+                    if (currentScoreMap.get(socket.uuid) == 10) {
                         shutDownRoom(socket.room, socket, app);
                     }
                 }
@@ -78,44 +78,46 @@ function check(socket, message, app) {
 
 function startGameLoop(room) {
     var flag = false;
-    var gameLoop = setInterval(function() {
-    if (flag == false) {
-        msg = JSON.stringify(["scoreboard", mapToObj(gameMap.get(room)[0])]);
-        //gng = JSON.parse(msg);
-        //console.log(gng);
-        app.publish(room, msg, false); 
-    }
-    flag = true;
-    shape = shapeGen.shapeGen(); 
-    shape2 = shapeGen.shapeGen();
-    shape3 = shapeGen.shapeGen();
-    app.publish(room, JSON.stringify(["drawing", shape[1]]), false); 
-    app.publish(room, JSON.stringify(["drawing", shape2[1]]), false); 
-    app.publish(room, JSON.stringify(["drawing", shape3[1]]), false); 
-    myDict = new Map();
-    var keys = Array.from(gameMap.get(room)[0].keys());
-    keys.forEach(function(key){
-    myDict.set(key, false);    
-    });
+    var c = setInterval(function() {
+        var gameLoop = setInterval(function() {
+        if (flag == false) {
+            msg = JSON.stringify(["scoreboard", mapToObj(gameMap.get(room)[0])]);
+            //gng = JSON.parse(msg);
+            //console.log(gng);
+            app.publish(room, msg, false); 
+        }
+        flag = true;
+        shape = shapeGen.shapeGen(); 
+        shape2 = shapeGen.shapeGen();
+        shape3 = shapeGen.shapeGen();
+        app.publish(room, JSON.stringify(["drawing", shape[1]]), false); 
+        app.publish(room, JSON.stringify(["drawing", shape2[1]]), false); 
+        app.publish(room, JSON.stringify(["drawing", shape3[1]]), false); 
+        myDict = new Map();
+        var keys = Array.from(gameMap.get(room)[0].keys());
+        keys.forEach(function(key){
+        myDict.set(key, false);    
+        });
 
-    myDict2 = new Map();
-    keys.forEach(function(key){
-    myDict2.set(key, false);    
-    });
+        myDict2 = new Map();
+        keys.forEach(function(key){
+        myDict2.set(key, false);    
+        });
 
-    myDict3 = new Map();
-    keys.forEach(function(key){
-    myDict3.set(key, false);    
-    });            
-    gameLinkedList = gameMap.get(room)[1];
-    gameLinkedList.push([shape[0], myDict]); 
-    gameLinkedList.push([shape2[0], myDict2]); 
-    gameLinkedList.push([shape3[0], myDict3]); 
-    count++; 
-    console.log(count);
-    }, 3000);
-    
+        myDict3 = new Map();
+        keys.forEach(function(key){
+        myDict3.set(key, false);    
+        });            
+        gameLinkedList = gameMap.get(room)[1];
+        gameLinkedList.push([shape[0], myDict]); 
+        gameLinkedList.push([shape2[0], myDict2]); 
+        gameLinkedList.push([shape3[0], myDict3]); 
+        count++; 
+        console.log(count);
+        }, 3000);
     gameMap.get(room).push(gameLoop);
+    clearInterval(c);
+    }, 4000);
 }
 
 const app = uWS.App().ws('/*', {  // handle messages from client
