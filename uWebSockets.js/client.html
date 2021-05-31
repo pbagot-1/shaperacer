@@ -4,9 +4,10 @@
 	</head>
     <body style="margin: 0; height: 100vh; width: 100vw">
         <p id="countdown" style='position:fixed;top:50%;left:50%;transform: translate(-50%, -50%);'></p>
-        <div id="renderList" style="position:fixed;top:10%;left:50%; height:10%; width: 20%;"></div>
+        <div id="renderList" style="position:fixed;top:10%;left:70%; height:10%; width: 20%;"></div>
         <canvas id="can" width="720" height="480" style="height: 100%; width: 100%"></canvas>
-        <input style='position:fixed;top:90%;left:50%;transform: translate(-50%, -50%);' placeholder="Enter some text" name="name"/>
+        <input id='nameInput' style='position:fixed;top:60%;left:50%;transform: translate(-50%, -50%);background-color: transparent;border: none;border-radius: 5px;color:black;font-family: Trebuchet MS; font-size: 1.5rem;font-weight: bold;line-height: 4rem;outline: none;text-align: center;padding: 0 1rem;' placeholder="Enter name" name="name"/>
+        <input id='gameInput' style='position:fixed;top:90%;left:50%;transform: translate(-50%, -50%);background-color: transparent;border: none;border-radius: 5px;color:black;font-family: Trebuchet MS; font-size: 8.5rem;font-weight: bold;line-height: 4rem;outline: none;text-align: center;padding: 0 1rem;' placeholder="" name="name"/>
     </body>
     <script type='module' src='shapegenClient.js'></script>
     <script type='module' src='mainClient.js'></script>

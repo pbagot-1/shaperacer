@@ -66,14 +66,14 @@ function main() {
             //console.log("added");
             break;
         case "scoreboard":
-            //console.log('inside scoreboard');
             var d = function(){
                 var ul = document.createElement('ul');
                 ul.setAttribute('id','proList');
-
+                ul.style['list-style-type'] = 'none';
+                ul.style['transform'] = 'scale(1,.5)';
                 var t, tt;
-                var productList = (Object.entries(msgObj[1]));
-
+                var productList = msgObj[1];
+                
                 function removeAllChildNodes(parent) {
                     while (parent.firstChild) {
                         parent.removeChild(parent.firstChild);
@@ -81,27 +81,93 @@ function main() {
                 }
                 removeAllChildNodes(document.getElementById('renderList'));
                 document.getElementById('renderList').appendChild(ul);
+                var li = document.createElement('li');
+                li.setAttribute('class','item');
+                
+                ul.appendChild(li);
+                
+                var scoreboard = document.createElement('span');
+                scoreboard.style["color"] = "black";
+                scoreboard.style['font'] = "40px Trebuchet MS";
+                li.appendChild(scoreboard);
+                scoreboard.innerHTML='Scoreboard';
+                
+                
                 productList.forEach(renderProductList);
-
+                    
+                
                 function renderProductList(element, index, arr) {
                     var li = document.createElement('li');
                     li.setAttribute('class','item');
                     
                     ul.appendChild(li);
+                    var mostRecent = "black";
                     
-                    t = document.createTextNode(element);
+                    for (let i = 0; i < element[0].length; i++) {
+                      var span = document.createElement('span');
+                      if (element[0][i] == '^') {
+                        if (i < (element[0].length - 1)) {
+                            if (element[0][i+1] == '0') {
+                                mostRecent = "black";
+                                i = i + 2;
+                            }
+                            if (element[0][i+1] == '1') {
+                                mostRecent = "red";
+                                i = i + 2;
+                            }
+                            if (element[0][i+1] == '2') {
+                                mostRecent = "green";
+                                i = i + 2;
+                            }
+                            if (element[0][i+1] == '3') {
+                                mostRecent = "yellow";
+                                i = i + 2;
+                            }
+                            if (element[0][i+1] == '4') {
+                                mostRecent = "blue";
+                                i = i + 2;
+                            }
+                            if (element[0][i+1] == '5') {
+                                mostRecent = "cyan";
+                                i = i + 2;
+                            }
+                            if (element[0][i+1] == '6') {
+                                mostRecent = "magenta";
+                                i = i + 2;
+                            }   
+                            if (element[0][i+1] == '7') {
+                                mostRecent = "white";
+                                i = i + 2;
+                            }           
+                            if (element[0][i+1] == '8') {
+                                mostRecent = "orange";
+                                i = i + 2;
+                            }  
+                        }
+                      }
+                      span.style["color"] = mostRecent;
+                      span.style['font'] = "40px Trebuchet MS";
+                      span.innerHTML=span.innerHTML + element[0][i];
+                      li.appendChild(span);
+                    }
                     
-                    li.innerHTML=li.innerHTML + element;
+                    var span2 = document.createElement('span');
+                    span2.style["color"] = "black";
+                    span2.style['font'] = "40px Trebuchet MS";
+                    li.appendChild(span2);
+                    span2.innerHTML=span2.innerHTML + ' ' + element[1];
+                    //li.innerHTML=li.innerHTML + element;
                 }
             };
             d();
             //console.log('CALLED');
             break;
         case "GAME START":
+            document.getElementById("nameInput").style.display='none';
             searching = false;
             clearInterval(genMainScreen);
             clearInterval(clearMainScreen);
-            var inGame = true;
+            inGame = true;
             
             ctx.strokeStyle = 'black';
             var num = 3;  
@@ -115,6 +181,7 @@ function main() {
                     var x = setInterval(function() {
                         if (num == 0) {
                             clearInterval(x);
+                            document.getElementById("gameInput").focus();
                             return;
                         }
                         ctx.font = "120px Trebuchet MS";
@@ -127,7 +194,8 @@ function main() {
                 function fadeOut() {
                     ctx.fillStyle = "rgba(255,255,255,0.3)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    setTimeout(fadeOut,50);
+                    if (inGame) {
+                    setTimeout(fadeOut,50); }
                 }
                 fadeOut();
                 clearInterval(foundAlert);  
@@ -135,8 +203,13 @@ function main() {
             break;
             
         case "GAME OVER":
-            document.getElementById("countdown").innerHTML = msgObj[1] + " WINS";
-            var node = document.createElement("LI");
+            inGame = false;
+            ctx.fillStyle = "rgba(0,0,0)";
+            ctx.lineWidth = 2;
+            ctx.font = '30px Trebuchet MS';
+            var textString = msgObj[1] + " WINS";
+            var textWidth = ctx.measureText(textString).width;
+            ctx.fillText(textString , (canvas.width / 2) - (textWidth / 2), 200);
             break;
         }
     };
@@ -292,8 +365,8 @@ function main() {
         //&& (currX <= ((canvas.width / 2) + (textWidth / 2))) && (currY >= 300) && (currY <= (300 + textHeight)))
         if ((currX >= ((canvas.width / 2) - (textWidth / 2))) && (currX <= ((canvas.width / 2) + (textWidth / 2))) && (currY <= 250) && (currY >= (250 - textHeight))) {
         console.log("sweet spot");
-        ws.send('play');
-        if (searching == false) {
+        ws.send(JSON.stringify(['play', document.getElementById('nameInput').value]));
+        if (searching == false and inGame == false) {
             searching = true;
             startSearchingLoop();
         }
@@ -302,12 +375,12 @@ function main() {
         
     }, false);              
    
-    const input = document.querySelector('input');
+    const input = document.getElementById('gameInput');
     input.addEventListener("keyup", updateValue);
 
     function updateValue(e) {
       if (e.keyCode == 13) {
-        ws.send(e.target.value);
+        ws.send(JSON.stringify([e.target.value]));
         e.target.value = '';
       }
       

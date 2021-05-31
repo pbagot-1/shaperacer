@@ -35,6 +35,13 @@ const mapToObj = m => {
   }, {});
 };
 
+const mapToList = m => {
+  return Array.from(m).reduce((obj, [key, value]) => {
+    obj.push([wsMap.get(key).playerName, value]);
+    return obj;
+  }, []);
+};
+
 function generateNewRoom(roomName, socketList) {
     newScoreMap = new Map();
     newLinkedList = new importLinked.ExpiringLinkedList(3);
@@ -44,7 +51,7 @@ function generateNewRoom(roomName, socketList) {
 
 // shuts down room after someone wins
 function shutDownRoom(roomName, socket, app) {
-    msg = JSON.stringify(["GAME OVER", socket.uuid]);
+    msg = JSON.stringify(["GAME OVER", socket.playerName]);
     app.publish(socket.room, msg, false);  
     clearInterval(gameMap.get(roomName)[2]);  
     var uuidsToUnsub = Array.from(gameMap.get(socket.room)[0].keys());
@@ -64,7 +71,8 @@ function check(socket, message, app) {
                     item[1].set(socket.uuid, true);
                     console.log("current score of " + socket.uuid + " " + currentScoreMap.get(socket.uuid));
                     found = true;
-                    msg = JSON.stringify(["scoreboard", mapToObj(currentScoreMap)]);
+                    console.log("THISTHING", mapToList(currentScoreMap));
+                    msg = JSON.stringify(["scoreboard", mapToList(currentScoreMap)]);
                     app.publish(socket.room, msg, false); 
                     if (currentScoreMap.get(socket.uuid) == 10) {
                         shutDownRoom(socket.room, socket, app);
@@ -81,7 +89,7 @@ function startGameLoop(room) {
     var c = setInterval(function() {
         var gameLoop = setInterval(function() {
         if (flag == false) {
-            msg = JSON.stringify(["scoreboard", mapToObj(gameMap.get(room)[0])]);
+            msg = JSON.stringify(["scoreboard", mapToList(gameMap.get(room)[0])]);
             //gng = JSON.parse(msg);
             //console.log(gng);
             app.publish(room, msg, false); 
@@ -124,7 +132,7 @@ const app = uWS.App().ws('/*', {  // handle messages from client
 
   open: (socket, req) => {
     socket.uuid = create_UUID();
-    socket.playerName = socket.uuid
+    socket.playerName = socket.uuid;
     console.log("from creation: ", socket.uuid);
     wsMap.set(socket.uuid, socket);
   },
@@ -133,11 +141,13 @@ const app = uWS.App().ws('/*', {  // handle messages from client
     var d = new Date();
     var n = d.getTime();
     
-    m = decoder.decode(message);
+    m = JSON.parse(decoder.decode(message));
     /* In this simplified example we only have drawing commands */
-    console.log("from message: ", m, socket.uuid);
-    if (m == "play" && typeof socket.room == "undefined") {
+    console.log("from message: ", m[0], socket.uuid);
+    if (m[0] == "play" && typeof socket.room == "undefined") {
         console.log("Got to play");
+        if (m[1] != '') {
+        socket.playerName = m[1]; }
         if (!searchingPlayers.includes(socket)) {
             searchingPlayers.push(socket);
         }
@@ -157,7 +167,7 @@ const app = uWS.App().ws('/*', {  // handle messages from client
     
     // check to see if sockets score needs to be increased
     if (typeof socket.room !== "undefined") {
-        gameMap.get(socket.room)[1].each(check(socket, m, app));
+        gameMap.get(socket.room)[1].each(check(socket, m[0], app));
     }
     
   },
