@@ -1,9 +1,16 @@
-let canvas, ctx, flag = false, prevX = 0, currX = 0, prevY = 0, currY = 0, ws;
+let canvas, ctx, flag, searching = false, prevX = 0, currX = 0, prevY = 0, currY = 0, ws, drawShape;
 let new_lines = [];
 let count = 0;
 let inGame = false;
 const decoder = new TextDecoder();
 import {shapeGen} from "./shapegenClient.js";
+let firstSetup = true;
+
+function removeAllChildNodes(parent) {
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+    }
+}
 
 function main() {
     /* Connect to the server */
@@ -74,11 +81,6 @@ function main() {
                 var t, tt;
                 var productList = msgObj[1];
                 
-                function removeAllChildNodes(parent) {
-                    while (parent.firstChild) {
-                        parent.removeChild(parent.firstChild);
-                    }
-                }
                 removeAllChildNodes(document.getElementById('renderList'));
                 document.getElementById('renderList').appendChild(ul);
                 var li = document.createElement('li');
@@ -164,9 +166,12 @@ function main() {
             break;
         case "GAME START":
             document.getElementById("nameInput").style.display='none';
+            removeAllChildNodes(document.getElementById('renderList'));
+            document.getElementById("renderList").style.display='block';
             searching = false;
-            clearInterval(genMainScreen);
-            clearInterval(clearMainScreen);
+            console.log('what it is', clearMainScreenHold);
+            clearInterval(genMainScreenHold);
+            clearInterval(clearMainScreenHold);
             inGame = true;
             
             ctx.strokeStyle = 'black';
@@ -181,6 +186,7 @@ function main() {
                     var x = setInterval(function() {
                         if (num == 0) {
                             clearInterval(x);
+                            document.getElementById("gameInput").style.display='block';
                             document.getElementById("gameInput").focus();
                             return;
                         }
@@ -206,16 +212,29 @@ function main() {
             inGame = false;
             ctx.fillStyle = "rgba(0,0,0)";
             ctx.lineWidth = 2;
-            ctx.font = '30px Trebuchet MS';
+            ctx.font = '15px Trebuchet MS';
             var textString = msgObj[1] + " WINS";
             var textWidth = ctx.measureText(textString).width;
             ctx.fillText(textString , (canvas.width / 2) - (textWidth / 2), 200);
+            
+            setTimeout(setupHome, 3000);
             break;
         }
     };
-
     canvas = document.getElementById('can');
     ctx = canvas.getContext("2d");
+    var genMainScreenHold;
+    var clearMainScreenHold;
+    function setupHome() {
+    if (!firstSetup) {
+        document.getElementById("gameInput").style.display='none';
+        document.getElementById("nameInput").style.display='block';
+        document.getElementById("renderList").style.display='none';
+    }
+    
+    ctx.fillStyle = "rgba(255,255,255)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,0,0)";
     var w = canvas.width;
     var h = canvas.height;
 
@@ -244,7 +263,6 @@ function main() {
     textWidth = ctx.measureText(textString).width;
     var metrics = ctx.measureText(textString);
     var textHeight = (metrics.actualBoundingBoxAscent||0) + (metrics.actualBoundingBoxDescent||0);
-    //console.log("TEXT WIDTH", textWidth);
     ctx.fillText(textString , (canvas.width / 2) - (textWidth / 2), 250);
     ctx.stroke();
 
@@ -325,7 +343,7 @@ function main() {
         }*/
     }, false);
     
-    var searching = false;
+    searching = false;
     var searchIt = 0;
     function startSearchingLoop() {
         //first clear old
@@ -366,7 +384,7 @@ function main() {
         if ((currX >= ((canvas.width / 2) - (textWidth / 2))) && (currX <= ((canvas.width / 2) + (textWidth / 2))) && (currY <= 250) && (currY >= (250 - textHeight))) {
         console.log("sweet spot");
         ws.send(JSON.stringify(['play', document.getElementById('nameInput').value]));
-        if (searching == false and inGame == false) {
+        if (searching == false && inGame == false) {
             searching = true;
             startSearchingLoop();
         }
@@ -383,14 +401,16 @@ function main() {
         ws.send(JSON.stringify([e.target.value]));
         e.target.value = '';
       }
-      
     }
-      
-    // Start generating the shapes on main screen
-    var genMainScreen = setInterval(function() 
+    drawShape = function drawShape(shape = undefined) 
         {
         for (var i=0; i<3; i++) {
-        var tempShape = shapeGen()[1]; 
+        if (!shape) {
+            var tempShape = shapeGen()[1];
+        }
+        else {
+            var tempShape = shapeGen(shape)[1];
+        }
         ctx.beginPath();
     
         if (tempShape.length == 5) {
@@ -413,13 +433,22 @@ function main() {
         ctx.stroke();
         }
         }
-    , 3000);
+    // Start generating the shapes on main screen
+    var genMainScreen = setInterval(drawShape
+    , 2000);
+    genMainScreenHold = genMainScreen;
     
     var clearMainScreen = setInterval(function() {
         ctx.fillStyle = "rgba(255,255,255,0.3)";
         ctx.fillRect(0, 0, canvas.width, 170);
         }, 50
     );
-    
+    clearMainScreenHold = clearMainScreen;
+    }
+    if (firstSetup) {
+    setupHome();
+    firstSetup = false;
+    }
+
 }
 main();
