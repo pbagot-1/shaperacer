@@ -1,4 +1,5 @@
-let canvas, ctx, flag, searching = false, prevX = 0, currX = 0, prevY = 0, currY = 0, ws, drawShape;
+let canvas, canvas2, ctx, ctx2, flag, searching = false, prevX = 0, currX = 0, prevY = 0, currY = 0, ws, drawShape;
+let versionString = "Version 1.0.0";
 let new_lines = [];
 let count = 0;
 let inGame = false;
@@ -18,7 +19,7 @@ function main() {
     ws.binaryType = 'arraybuffer';
 
     ws.onopen = () => {
-        /* Join the "room" of canvas 1 */
+        setInterval(ws.send('ping'), 50000);
     };
 
     /* For every message we receive */
@@ -73,98 +74,25 @@ function main() {
             //console.log("added");
             break;
         case "scoreboard":
-            var d = function(){
-                var ul = document.createElement('ul');
-                ul.setAttribute('id','proList');
-                ul.style['list-style-type'] = 'none';
-                ul.style['transform'] = 'scale(1,.5)';
-                var t, tt;
-                var productList = msgObj[1];
-                
-                removeAllChildNodes(document.getElementById('renderList'));
-                document.getElementById('renderList').appendChild(ul);
-                var li = document.createElement('li');
-                li.setAttribute('class','item');
-                
-                ul.appendChild(li);
-                
-                var scoreboard = document.createElement('span');
-                scoreboard.style["color"] = "black";
-                scoreboard.style['font'] = "40px Trebuchet MS";
-                li.appendChild(scoreboard);
-                scoreboard.innerHTML='Scoreboard';
-                
-                
-                productList.forEach(renderProductList);
-                    
-                
-                function renderProductList(element, index, arr) {
-                    var li = document.createElement('li');
-                    li.setAttribute('class','item');
-                    
-                    ul.appendChild(li);
-                    var mostRecent = "black";
-                    
-                    for (let i = 0; i < element[0].length; i++) {
-                      var span = document.createElement('span');
-                      if (element[0][i] == '^') {
-                        if (i < (element[0].length - 1)) {
-                            if (element[0][i+1] == '0') {
-                                mostRecent = "black";
-                                i = i + 2;
-                            }
-                            if (element[0][i+1] == '1') {
-                                mostRecent = "red";
-                                i = i + 2;
-                            }
-                            if (element[0][i+1] == '2') {
-                                mostRecent = "green";
-                                i = i + 2;
-                            }
-                            if (element[0][i+1] == '3') {
-                                mostRecent = "yellow";
-                                i = i + 2;
-                            }
-                            if (element[0][i+1] == '4') {
-                                mostRecent = "blue";
-                                i = i + 2;
-                            }
-                            if (element[0][i+1] == '5') {
-                                mostRecent = "cyan";
-                                i = i + 2;
-                            }
-                            if (element[0][i+1] == '6') {
-                                mostRecent = "magenta";
-                                i = i + 2;
-                            }   
-                            if (element[0][i+1] == '7') {
-                                mostRecent = "white";
-                                i = i + 2;
-                            }           
-                            if (element[0][i+1] == '8') {
-                                mostRecent = "orange";
-                                i = i + 2;
-                            }  
-                        }
-                      }
-                      span.style["color"] = mostRecent;
-                      span.style['font'] = "40px Trebuchet MS";
-                      span.innerHTML=span.innerHTML + element[0][i];
-                      li.appendChild(span);
-                    }
-                    
-                    var span2 = document.createElement('span');
-                    span2.style["color"] = "black";
-                    span2.style['font'] = "40px Trebuchet MS";
-                    li.appendChild(span2);
-                    span2.innerHTML=span2.innerHTML + ' ' + element[1];
-                    //li.innerHTML=li.innerHTML + element;
-                }
-            };
-            d();
-            //console.log('CALLED');
+            ctx2.clearRect(0,0,720,480);
+            var scoreList = msgObj[1];
+            ctx2.font = '25px Trebuchet MS';
+            ctx2.fillStyle = "rgba(0,0,0,1)";
+            var scoreBoardStr = "Scoreboard";
+            var curHeight = 35;
+            ctx2.fillText(scoreBoardStr , 500, curHeight);
+            ctx2.font = '15px Trebuchet MS';
+            ctx2.fillText(versionString, 5, 472.5);
+            scoreList.forEach(renderScoreBoard);
+            
+            function renderScoreBoard(element, index, arr) {
+                curHeight += 30;
+                scoreBoardStr = element[0] + ': ' + element[1];
+                ctx2.fillText(scoreBoardStr , 500, curHeight);
+            }
             break;
         case "GAME START":
+            ctx.strokeStyle = 'black';
             document.getElementById("nameInput").style.display='none';
             removeAllChildNodes(document.getElementById('renderList'));
             document.getElementById("renderList").style.display='block';
@@ -198,10 +126,10 @@ function main() {
                     }, 1000);                
 
                 function fadeOut() {
-                    ctx.fillStyle = "rgba(255,255,255,0.3)";
+                    ctx.fillStyle = "rgba(255,255,255,0.7)";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     if (inGame) {
-                    setTimeout(fadeOut,50); }
+                    setTimeout(fadeOut,125); }
                 }
                 fadeOut();
                 clearInterval(foundAlert);  
@@ -218,16 +146,86 @@ function main() {
             ctx.fillText(textString , (canvas.width / 2) - (textWidth / 2), 200);
             
             setTimeout(setupHome, 3000);
+            setTimeout(() => {ctx2.clearRect(0,0,720,480);ctx2.font = '15px Trebuchet MS';ctx2.fillText(versionString, 5, 472.5);}, 3000);
+            break;
+            
+        case "PLAYERS ONLINE":
+            if (!inGame) {
+                ctx.fillStyle = "rgba(255,255,255)";
+                ctx.fillRect(600, 460, 720, 480);
+                ctx.fillStyle = "rgba(0,0,0)";
+                ctx.lineWidth = 2;
+                ctx.font = '15px Trebuchet MS';
+                var textString = "Players online: " + msgObj[1].toString();
+                ctx.fillText(textString, 600, 472.5);
+            }
             break;
         }
     };
     canvas = document.getElementById('can');
     ctx = canvas.getContext("2d");
+    canvas2 = document.getElementById('can2');
+    ctx2 = canvas2.getContext("2d");
+    
+    ctx2.fillStyle = "rgba(0,0,0)";
+    ctx2.font = '15px Trebuchet MS';
+    ctx2.fillText(versionString, 5, 472.5);
+    
     var genMainScreenHold;
     var clearMainScreenHold;
-    function setupHome() {
+function setupHome() {
+    document.getElementById("gameInput").style.display='none';
+    var rulesShown = false;
+    drawShape = function drawShape(shape = undefined) 
+        {
+        ctx.strokeStyle = 'black';
+        for (var i=0; i<3; i++) {
+        if (!shape) {
+            var tempShape = shapeGen()[1];
+        }
+        else {
+            var tempShape = shapeGen(shape)[1];
+        }
+        drawSpecificShape(tempShape);
+        }
+        }
+        
+    function drawSpecificShape(tempShape) {
+        ctx.beginPath();
+    
+        if (tempShape.length == 5) {
+        ctx.arc(tempShape[0], tempShape[1], tempShape[2], tempShape[3], tempShape[4]);
+        } 
+        else {
+        ctx.moveTo(tempShape[0], tempShape[1]);
+        var length = tempShape.length - 2;
+        
+        var x = 2;
+        var y = 3;
+            while (length >= 0) {
+            ctx.lineTo(tempShape[x], tempShape[y]);
+            length = length - 2;
+            x += 2;
+            y += 2;
+            };
+        }
+            
+        ctx.stroke();
+    }
+    // Start generating the shapes on main screen
+    var genMainScreen = setInterval(drawShape
+    , 3000);
+    genMainScreenHold = genMainScreen;
+    
+    var clearMainScreen = setInterval(function() {
+        
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.fillRect(200, 0, 322, 170);
+        }, 125
+    );
+    clearMainScreenHold = clearMainScreen;
+    
     if (!firstSetup) {
-        document.getElementById("gameInput").style.display='none';
         document.getElementById("nameInput").style.display='block';
         document.getElementById("renderList").style.display='none';
     }
@@ -245,9 +243,10 @@ function main() {
     
     var textString = "Shape Racer";
     var textWidth = ctx.measureText(textString).width;
-    //console.log("TEXT WIDTH", textWidth);
     ctx.fillText(textString , (canvas.width / 2) - (textWidth / 2), 200);
     var initialx = (canvas.width / 2) - (textWidth / 2) - 10;
+    var forClearing = initialx + 50 + 10 + textWidth + 10;
+    console.log("FC", forClearing);
     ctx.beginPath();
     ctx.moveTo(initialx, 190);
     ctx.lineTo(initialx - 50, 190);
@@ -257,33 +256,162 @@ function main() {
     ctx.lineTo(initialx + 10 + textWidth + 10, 190);
     ctx.stroke();
     
+    var playTextWidth;
+    var playTextHeight;
+    //Draw play button
+   function drawPlay() {
+    ctx.fillStyle = "rgba(0,0,0, 1)";
     var textString = "Play";
     ctx.font = '20px Trebuchet MS';
-   
-    textWidth = ctx.measureText(textString).width;
+    playTextWidth = ctx.measureText(textString).width;
     var metrics = ctx.measureText(textString);
-    var textHeight = (metrics.actualBoundingBoxAscent||0) + (metrics.actualBoundingBoxDescent||0);
-    ctx.fillText(textString , (canvas.width / 2) - (textWidth / 2), 250);
-    ctx.stroke();
-
-    var inTheThing = false;
-    const TLx = (canvas.width / 2) - (textWidth / 2) - 10 - 10;
-    const TLy = 250 - textHeight - 10;
-    const TRx = (canvas.width / 2) + (textWidth / 2) + 10 + 10;
-    const TRy = 250 - textHeight - 10;
-    const BLx = (canvas.width / 2) - (textWidth / 2) - 10 - 10;
-    const BLy = 250 + 10;
-    const BRx = (canvas.width / 2) + (textWidth / 2) + 10 + 10;
-    const BRy = 250 + 10;
-    canvas.addEventListener("mousemove", function (e) {
+    playTextHeight = (metrics.actualBoundingBoxAscent||0) + (metrics.actualBoundingBoxDescent||0);
+    ctx.fillText(textString , (canvas.width / 2) - (playTextWidth / 2), 250);
+   }
+   drawPlay();
     
+    var rulesTextWidth;
+    var rulesTextHeight;
+    //Draw rules button
+    function drawRules() {
+        ctx.fillStyle = "rgba(0,0,0, 1)";
+        var textString = "Rules";
+        ctx.font = '20px Trebuchet MS';
+        rulesTextWidth = ctx.measureText(textString).width;
+        var metrics = ctx.measureText(textString);
+        rulesTextHeight = (metrics.actualBoundingBoxAscent||0) + (metrics.actualBoundingBoxDescent||0);
+        ctx.fillText(textString , (canvas.width / 2) - (rulesTextWidth / 2), 350);
+    }
+    drawRules();
+
+    //Make constants for drawing around the buttons
+    var inPlay = false;
+    var inRules = false;
+    const TLx = (canvas.width / 2) - (playTextWidth / 2) - 10 - 10;
+    const TLy = 250 - playTextHeight - 10;
+    const TRx = (canvas.width / 2) + (playTextWidth / 2) + 10 + 10;
+    const TRy = 250 - playTextHeight - 10;
+    const BLx = (canvas.width / 2) - (playTextWidth / 2) - 10 - 10;
+    const BLy = 250 + 10;
+    const BRx = (canvas.width / 2) + (playTextWidth / 2) + 10 + 10;
+    const BRy = 250 + 10;
+    
+    const rTLx = (canvas.width / 2) - (rulesTextWidth / 2) - 10 - 10;
+    const rTLy = 350 - rulesTextHeight - 10;
+    const rTRx = (canvas.width / 2) + (rulesTextWidth / 2) + 10 + 10;
+    const rTRy = 350 - rulesTextHeight - 10;
+    const rBLx = (canvas.width / 2) - (rulesTextWidth / 2) - 10 - 10;
+    const rBLy = 350 + 10;
+    const rBRx = (canvas.width / 2) + (rulesTextWidth / 2) + 10 + 10;
+    const rBRy = 350 + 10;
+    
+    var playDiv = document.getElementById("playDiv");
+
+    playDiv.addEventListener('mouseover', changePlayOver);
+    playDiv.addEventListener('mouseout', changePlayOut);
+    playDiv.addEventListener('mousedown', playDown);
+    
+    function playDown(){        
+        ws.send(JSON.stringify(['play', document.getElementById('nameInput').value]));
+        if (searching == false && inGame == false) {
+            searching = true;
+            startSearchingLoop();
+        }
+    };
+
+    function changePlayOver(e) {
+        if (inGame == false) {
+            ctx.strokeStyle = 'black';
+            ctx.beginPath();
+            ctx.moveTo(TLx, TLy);
+            ctx.lineTo(TLx + 10, TLy);
+            ctx.moveTo(TLx, TLy);
+            ctx.lineTo(TLx, TLy + 10);
+            
+            ctx.moveTo(TRx, TRy);
+            ctx.lineTo(TRx - 10, TRy);
+            ctx.moveTo(TRx, TRy);
+            ctx.lineTo(TRx, TRy + 10);
+            
+            ctx.moveTo(BLx, BLy);
+            ctx.lineTo(BLx + 10, BLy);
+            ctx.moveTo(BLx, BLy);
+            ctx.lineTo(BLx, BLy - 10);
+            
+            ctx.moveTo(BRx, BRy);
+            ctx.lineTo(BRx - 10, BRy);
+            ctx.moveTo(BRx, BRy);
+            ctx.lineTo(BRx, BRy - 10);                                
+            ctx.stroke(); 
+        }            
+    }
+
+    function changePlayOut(e) {
+        if (inGame == false) {
+        ctx.fillStyle = "rgba(255,255,255, 1)";         
+        ctx.fillRect(304, 213, 416-304, 263-213);
+        drawPlay();
+        }
+    }
+    
+    var rulesDiv = document.getElementById("rulesDiv");
+
+    rulesDiv.addEventListener('mouseover', changeRulesOver);
+    rulesDiv.addEventListener('mouseout', changeRulesOut);
+    rulesDiv.addEventListener('mousedown', rulesDown);
+    
+    function rulesDown() {
+        if (inGame == false && rulesShown == false) {
+            displayRules();
+        }
+        else if (inGame == false && rulesShown == true) {
+            clearRules();
+        }
+    }
+    function changeRulesOver(e) {
+        if (inGame == false) {
+            ctx.strokeStyle = 'black';
+            ctx.beginPath();
+            ctx.moveTo(rTLx, rTLy);
+            ctx.lineTo(rTLx + 10, rTLy);
+            ctx.moveTo(rTLx, rTLy);
+            ctx.lineTo(rTLx, rTLy + 10);
+            
+            ctx.moveTo(rTRx, rTRy);
+            ctx.lineTo(rTRx - 10, rTRy);
+            ctx.moveTo(rTRx, rTRy);
+            ctx.lineTo(rTRx, rTRy + 10);
+            
+            ctx.moveTo(rBLx, rBLy);
+            ctx.lineTo(rBLx + 10, rBLy);
+            ctx.moveTo(rBLx, rBLy);
+            ctx.lineTo(rBLx, rBLy - 10);
+            
+            ctx.moveTo(rBRx, rBRy);
+            ctx.lineTo(rBRx - 10, rBRy);
+            ctx.moveTo(rBRx, rBRy);
+            ctx.lineTo(rBRx, rBRy - 10);                                
+            ctx.stroke();  
+        }            
+    }
+
+    function changeRulesOut(e) {
+        if (inGame == false) {
+        ctx.fillStyle = "rgba(255,255,255, 1)"; 
+        ctx.fillRect(304, 321, 416-304, 366-321);
+        drawRules();
+        }
+    }
+
+    /*canvas.addEventListener("mousemove", function tide (e) {
         currX = e.clientX / window.innerWidth * 720;
         currY = e.clientY / window.innerHeight * 480;
-        //console.log(currX);
-        //console.log(currY);
-        //&& (currX <= ((canvas.width / 2) + (textWidth / 2))) && (currY >= 300) && (currY <= (300 + textHeight)))
-        /*if ((currX >= ((canvas.width / 2) - (textWidth / 2))) && (currX <= ((canvas.width / 2) + (textWidth / 2))) && (currY <= 250) && (currY >= (250 - textHeight))) {
-            if (inTheThing == false) {
+        console.log("x", currX);
+        console.log("y", currY);
+        if ((currX >= ((canvas.width / 2) - (playTextWidth / 2))) && (currX <= ((canvas.width / 2) + (playTextWidth / 2))) && (currY <= 250) && (currY >= (250 - playTextHeight))) {
+            console.log("IN PLAY");
+                //console.log("TRIGGERED");
+                if (!inPlay) {
                 ctx.strokeStyle = 'black';
                 ctx.beginPath();
                 ctx.moveTo(TLx, TLy);
@@ -305,50 +433,64 @@ function main() {
                 ctx.lineTo(BRx - 10, BRy);
                 ctx.moveTo(BRx, BRy);
                 ctx.lineTo(BRx, BRy - 10);                                
-                ctx.stroke();
-            }
-            inTheThing = true;
-        } else {
-            if (inTheThing && !inGame) {
-            ctx.strokeStyle = "rgba(255,255,255,0.3)";
-            var j = 0;
-            var i = setInterval( function() { 
+                ctx.stroke();   
+                 inPlay = true;
+                }
+           
+        }  
+        else if ((currX >= ((canvas.width / 2) - (rulesTextWidth / 2))) && (currX <= ((canvas.width / 2) + (rulesTextWidth / 2))) && (currY <= 350) && (currY >= (350 - rulesTextHeight))) {
+            console.log("IN RULES");
+            if (inRules == false) {
+                ctx.strokeStyle = 'black';
                 ctx.beginPath();
-                ctx.moveTo(TLx, TLy);
-                ctx.lineTo(TLx + 10, TLy);
-                ctx.moveTo(TLx, TLy);
-                ctx.lineTo(TLx, TLy + 10);
+                ctx.moveTo(rTLx, rTLy);
+                ctx.lineTo(rTLx + 10, rTLy);
+                ctx.moveTo(rTLx, rTLy);
+                ctx.lineTo(rTLx, rTLy + 10);
                 
-                ctx.moveTo(TRx, TRy);
-                ctx.lineTo(TRx - 10, TRy);
-                ctx.moveTo(TRx, TRy);
-                ctx.lineTo(TRx, TRy + 10);
+                ctx.moveTo(rTRx, rTRy);
+                ctx.lineTo(rTRx - 10, rTRy);
+                ctx.moveTo(rTRx, rTRy);
+                ctx.lineTo(rTRx, rTRy + 10);
                 
-                ctx.moveTo(BLx, BLy);
-                ctx.lineTo(BLx + 10, BLy);
-                ctx.moveTo(BLx, BLy);
-                ctx.lineTo(BLx, BLy - 10);
+                ctx.moveTo(rBLx, rBLy);
+                ctx.lineTo(rBLx + 10, rBLy);
+                ctx.moveTo(rBLx, rBLy);
+                ctx.lineTo(rBLx, rBLy - 10);
                 
-                ctx.moveTo(BRx, BRy);
-                ctx.lineTo(BRx - 10, BRy);
-                ctx.moveTo(BRx, BRy);
-                ctx.lineTo(BRx, BRy - 10);                                
-                ctx.stroke();       
-            j++;
-            if (j > 100) {clearInterval(i);}
+                ctx.moveTo(rBRx, rBRy);
+                ctx.lineTo(rBRx - 10, rBRy);
+                ctx.moveTo(rBRx, rBRy);
+                ctx.lineTo(rBRx, rBRy - 10);                                
+                ctx.stroke();   
+            }
+            inRules = true;
             
-            }, 50);  
-            inTheThing = false;
-            }                            
-        }*/
-    }, false);
+        } else {
+            console.log("IN GENERAL");
+
+                //inPlay = false;
+                //ctx.fillStyle = "rgba(255,255,255, 1)";         
+                //ctx.fillRect(304, 213, 416-304, 263-213);
+                //drawPlay();
+
+                //ctx.fillStyle = "rgba(0,0,0, 1)";
+                //drawPlay();
+            else if (inRules && !inGame) {
+                ctx.fillStyle = "rgba(255,255,255, 1)"; 
+                ctx.fillRect(304, 321, 416-304, 366-321);
+                drawRules();
+                inRules = false;
+            }      
+        }
+    }, false);*/
     
     searching = false;
     var searchIt = 0;
     function startSearchingLoop() {
         //first clear old
         ctx.fillStyle = "rgba(255,255,255, 1)";
-        ctx.fillRect(0, 400, canvas.width, 720);
+        ctx.fillRect(0, 400, 590, 720);
         if (searching) {
         ctx.fillStyle = "rgba(0,0,0)";
         ctx.strokeStyle = 'black';
@@ -374,15 +516,56 @@ function main() {
         }
     }
     
+    function displayRules() {
+        rulesShown = true;
+        ctx.font = '15px Trebuchet MS';
+        ctx.fillStyle = "rgba(0,0,0, 1)";
+        var ruleString1 = "For every shape that";
+        var ruleString2 = "appears on the screen, you";
+        var ruleString3 = "have 3 seconds to type the";
+        var ruleString4 = "first letter of the shape and";
+        var ruleString5 = "hit enter. Each shape gives";
+        var ruleString6 =  "you one point. First to 100";
+        var ruleString7 = "wins.";
+        ctx.fillText(ruleString1 , 10, 80);
+        ctx.fillText(ruleString2 , 10, 110);
+        ctx.fillText(ruleString3 , 10, 140);
+        ctx.fillText(ruleString4 , 10, 170);
+        ctx.fillText(ruleString5 , 10, 200);    
+        ctx.fillText(ruleString6 , 10, 230);  
+        ctx.fillText(ruleString7 , 10, 260);      
+
+        var shapeGuide = "Shape Guide";
+        ctx.fillText(shapeGuide , forClearing + 70, 80);
+        drawSpecificShape(shapeGen(1)[1]);
+        drawSpecificShape(shapeGen(2)[1]);
+        drawSpecificShape(shapeGen(3)[1]);
+        drawSpecificShape(shapeGen(4)[1]);
+        ctx.fillText("  s     t      o      a" , 550, 142);
+        drawSpecificShape(shapeGen(5)[1]);
+        drawSpecificShape(shapeGen(6)[1]);
+        ctx.fillText("  d" , 549, 192);
+        ctx.fillText("        c" , 550, 192);
+        
+        
+        ctx.fillText("... More to come!" , 550, 250);
+    }
+    
+    function clearRules() {
+        ctx.fillStyle = "rgba(255,255,255, 1)";
+        ctx.fillRect(0, 0, initialx - 50 - 5,  canvas.height);
+        ctx.fillRect(forClearing+5, 0, canvas.width, canvas.height);
+        rulesShown = false;
+    }
+    
     canvas.addEventListener("mousedown", function (e) {
     
         currX = e.clientX / window.innerWidth * 720;
         currY = e.clientY / window.innerHeight * 480;
         console.log(currX);
         console.log(currY);
-        //&& (currX <= ((canvas.width / 2) + (textWidth / 2))) && (currY >= 300) && (currY <= (300 + textHeight)))
-        if ((currX >= ((canvas.width / 2) - (textWidth / 2))) && (currX <= ((canvas.width / 2) + (textWidth / 2))) && (currY <= 250) && (currY >= (250 - textHeight))) {
-        console.log("sweet spot");
+        
+        if ((currX >= ((canvas.width / 2) - (playTextWidth / 2))) && (currX <= ((canvas.width / 2) + (playTextWidth / 2))) && (currY <= 250) && (currY >= (250 - playTextHeight))) {
         ws.send(JSON.stringify(['play', document.getElementById('nameInput').value]));
         if (searching == false && inGame == false) {
             searching = true;
@@ -390,11 +573,18 @@ function main() {
         }
         }
         
-        
+        if ((currX >= ((canvas.width / 2) - (rulesTextWidth / 2))) && (currX <= ((canvas.width / 2) + (rulesTextWidth / 2))) && (currY <= 350) && (currY >= (350 - rulesTextHeight))) {
+        if (inGame == false && rulesShown == false) {
+            displayRules();
+        }
+        else if (inGame == false && rulesShown == true) {
+            clearRules();
+        }
+        }  
     }, false);              
    
     const input = document.getElementById('gameInput');
-    input.addEventListener("keyup", updateValue);
+    input.addEventListener("keydown", updateValue);
 
     function updateValue(e) {
       if (e.keyCode == 13) {
@@ -402,48 +592,6 @@ function main() {
         e.target.value = '';
       }
     }
-    drawShape = function drawShape(shape = undefined) 
-        {
-        for (var i=0; i<3; i++) {
-        if (!shape) {
-            var tempShape = shapeGen()[1];
-        }
-        else {
-            var tempShape = shapeGen(shape)[1];
-        }
-        ctx.beginPath();
-    
-        if (tempShape.length == 5) {
-        ctx.arc(tempShape[0], tempShape[1], tempShape[2], tempShape[3], tempShape[4]);
-        } 
-        else {
-        ctx.moveTo(tempShape[0], tempShape[1]);
-        var length = tempShape.length - 2;
-        
-        var x = 2;
-        var y = 3;
-            while (length >= 0) {
-            ctx.lineTo(tempShape[x], tempShape[y]);
-            length = length - 2;
-            x += 2;
-            y += 2;
-            };
-        }
-            
-        ctx.stroke();
-        }
-        }
-    // Start generating the shapes on main screen
-    var genMainScreen = setInterval(drawShape
-    , 2000);
-    genMainScreenHold = genMainScreen;
-    
-    var clearMainScreen = setInterval(function() {
-        ctx.fillStyle = "rgba(255,255,255,0.3)";
-        ctx.fillRect(0, 0, canvas.width, 170);
-        }, 50
-    );
-    clearMainScreenHold = clearMainScreen;
     }
     if (firstSetup) {
     setupHome();

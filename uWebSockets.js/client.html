@@ -5,9 +5,16 @@
     <body style="margin: 0; height: 100vh; width: 100vw">
         <p id="countdown" style='position:fixed;top:50%;left:50%;transform: translate(-50%, -50%);'></p>
         <div id="renderList" style="position:fixed;top:10%;left:70%; height:10%; width: 20%;"></div>
-        <canvas id="can" width="720" height="480" style="height: 100%; width: 100%"></canvas>
-        <input id='nameInput' style='position:fixed;top:60%;left:50%;transform: translate(-50%, -50%);background-color: transparent;border: none;border-radius: 5px;color:black;font-family: Trebuchet MS; font-size: 1.5rem;font-weight: bold;line-height: 4rem;outline: none;text-align: center;padding: 0 1rem;' placeholder="Enter name" name="name"/>
-        <input id='gameInput' style='position:fixed;top:90%;left:50%;transform: translate(-50%, -50%);background-color: transparent;border: none;border-radius: 5px;color:black;font-family: Trebuchet MS; font-size: 8.5rem;font-weight: bold;line-height: 4rem;outline: none;text-align: center;padding: 0 1rem;' placeholder="" name="name"/>
+        <div>
+             <canvas id="can2" width="720" height="480" 
+               style="position: absolute; left: 0; top: 0;height:100%;width:100%; z-index: 0;"></canvas>
+             <canvas id="can" width="720" height="480" 
+               style="position: absolute; left: 0; top: 0;height:100%;width:100%; z-index: -1;"></canvas>
+        </div>
+        <div id="playDiv" style="position:fixed;top:48.5%;left:47.3%; height:4%; width: 5%;"></div>
+        <div id="rulesDiv" style="position:fixed;top:69.3%;left:46.7%; height:4%; width: 6.5%;"></div>
+        <input id='nameInput' style='position:fixed;top:60%;left:50%;height:10%;width:25%;transform: translate(-50%, -50%);background-color: transparent;border: none;border-radius: 5px;color:black;font-family: Trebuchet MS; font-size: 1.5rem; outline: none;text-align: center;padding: 0 1rem;' placeholder="Enter name" name="name"/>
+        <input id='gameInput' style='position:fixed;top:75%;left:50%;height:25%;width:25%;transform: translate(-50%, -50%);background-color: transparent;border: none;border-radius: 5px;color:black;font-family: Trebuchet MS; font-size: 5.5rem;line-height: 4rem;outline: none;text-align: center;padding: 0 1rem;' placeholder="" name="name"/>
     </body>
     <script type='module' src='shapegenClient.js'></script>
     <script type='module' src='mainClient.js'></script>

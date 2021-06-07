@@ -5,7 +5,7 @@ const shapeGen = require("./shapegen.js");
 
 const decoder = new TextDecoder();
 
-//var flag = false;
+var firstPlayerJoin = false;
 var count = 0;
 var mainLinkedList = new importLinked.ExpiringLinkedList(3);
 
@@ -90,8 +90,6 @@ function startGameLoop(room) {
         var gameLoop = setInterval(function() {
         if (flag == false) {
             msg = JSON.stringify(["scoreboard", mapToList(gameMap.get(room)[0])]);
-            //gng = JSON.parse(msg);
-            //console.log(gng);
             app.publish(room, msg, false); 
         }
         flag = true;
@@ -135,19 +133,33 @@ const app = uWS.App().ws('/*', {  // handle messages from client
     socket.playerName = socket.uuid;
     console.log("from creation: ", socket.uuid);
     wsMap.set(socket.uuid, socket);
+    socket.subscribe("mainlobby");
+    if (!firstPlayerJoin) {
+        setInterval(function() {
+            app.publish("mainlobby", JSON.stringify(["PLAYERS ONLINE", wsMap.size]), false); 
+        }, 1000);
+        firstPlayerJoin = true;
+        }
   },
   
   message: (socket, message, isBinary) => {
     var d = new Date();
     var n = d.getTime();
-    
-    m = JSON.parse(decoder.decode(message));
+    try {
+            m = JSON.parse(decoder.decode(message));
+        } catch (error) {
+            return;
+        }
+
     /* In this simplified example we only have drawing commands */
     console.log("from message: ", m[0], socket.uuid);
     if (m[0] == "play" && typeof socket.room == "undefined") {
         console.log("Got to play");
         if (m[1] != '') {
-        socket.playerName = m[1]; }
+            socket.playerName = m[1]; }
+        else {
+            socket.playerName = "Guest " + socket.uuid.substring(0, 6);
+        }
         if (!searchingPlayers.includes(socket)) {
             searchingPlayers.push(socket);
         }
@@ -173,11 +185,7 @@ const app = uWS.App().ws('/*', {  // handle messages from client
   },
   
   close: (socket, code, message) => {
-    // called when a ws connection is closed
-    //scoreMap.delete(socket.uuid);
-    //msg = JSON.stringify(["scoreboard", mapToObj(scoreMap)]);
-    //app.publish("drawing/canvas1", msg, false); 
-    console.log("CLOSED");
+    wsMap.delete(socket.uuid);
     var index = searchingPlayers.indexOf(socket);
     if (index > -1) {
       searchingPlayers.splice(index, 1);
