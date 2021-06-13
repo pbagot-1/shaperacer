@@ -2,14 +2,14 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-function shapeGen() {
-var choice = getRandomInt(6) + 1;    
+function shapeGen(startX=undefined, startY=undefined) {
+var choice = getRandomInt(11) + 1; 
 
 switch (choice){
   case 1:
     // Square that starts somewhere randomly
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = startX ? startX : getRandomInt(620) + 50;
+    var y = startY ? startY : getRandomInt(380) + 50;
 
     var line1 = new Uint16Array([x, y]);
 
@@ -30,8 +30,8 @@ switch (choice){
   
   case 2:
     // Triangle
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = startX ? startX : getRandomInt(620) + 50;
+    var y = startY ? startY : getRandomInt(380) + 50;
 
     var line1 = new Uint16Array([x, y]);
 
@@ -52,9 +52,9 @@ switch (choice){
     return ["t", newList];
     
   case 3:
-    // Triangle
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    // Octagon
+    var x = startX ? startX : getRandomInt(620) + 50;
+    var y = startY ? startY : getRandomInt(360) + 50;
 
     var line1 = new Uint16Array([x, y]);
     x = x + 25;
@@ -87,8 +87,8 @@ switch (choice){
     
   case 4:
     // Arrow
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = startX ? startX : getRandomInt(620) + 50;
+    var y = startY ? startY : getRandomInt(380) + 50;
 
     var line1 = new Uint16Array([x, y]);
     x = x + 25;
@@ -119,8 +119,8 @@ switch (choice){
     
   case 5:
     // Diamond
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = startX ? startX : getRandomInt(620) + 50;
+    var y = startY ? startY : getRandomInt(380) + 50;
 
     var line1 = new Uint16Array([x, y]);
     
@@ -145,12 +145,104 @@ switch (choice){
     
   case 6:
     // Circle
-    var x = getRandomInt(620) + 50;
-    var y = getRandomInt(380) + 50;
+    var x = startX ? startX : getRandomInt(620) + 50;
+    var y = startY ? startY : getRandomInt(380) + 50;
 
     var line1 = new Uint16Array([x, y, 50, 0, 2 * Math.PI + 1]);
-    //ctx.arc(100, 75, 50, 0, 2 * Math.PI);
     return ["c", line1];
+  case 7:
+    // Rectangle
+    var x = startX ? startX : getRandomInt(620 - 2) + 1;
+    var y = startY ? startY : getRandomInt(380) + 50;
+    
+    var line1 = new Uint16Array([x, y]);
+    
+    x = x + 100;
+    var line2 = new Uint16Array([x, y]);
+    
+    y = y + 50;
+    var line3 = new Uint16Array([x, y]);
+    
+    x = x - 100;
+    var line4 = new Uint16Array([x, y]);
+    
+    y = y - 50;
+    var line5 = new Uint16Array([x, y]);
+    
+    var newList = new Uint16Array([...line1, ...line2, ...line3, ...line4, ...line5]);
+    return ["r", newList];
+  case 8:
+    // Hexagon
+    var x = startX ? startX : getRandomInt(570) + 70;
+    var y = startY ? startY : getRandomInt(350) + 25;
+    
+    var line1 = new Uint16Array([x, y]);
+    
+    x = x + 53;
+    var line2 = new Uint16Array([x, y]);
+    
+    x = x + 28;
+    y = y + 45;
+    var line3 = new Uint16Array([x, y]);
+    
+    x = x - 28;
+    y = y + 45;
+    var line4 = new Uint16Array([x, y]);
+    
+    x = x - 53;
+    var line5 = new Uint16Array([x, y]);
+    
+    x = x - 28;
+    y = y - 45;
+    var line6 = new Uint16Array([x, y]);
+    
+    x = x + 28;
+    y = y - 45;
+    var line7 = new Uint16Array([x, y]);
+    
+    var newList = new Uint16Array([...line1, ...line2, ...line3, ...line4, ...line5,  ...line6,  ...line7]);
+    return ["h", newList];
+    
+  case 9:
+    // Pentagon
+    var x = startX ? startX : getRandomInt(570) + 80;
+    var y = startY ? startY : getRandomInt(380) + 50;
+
+    var newList = new Uint16Array([x, y]);
+    return ["p", newList];
+    
+  case 10:
+    // Kite
+    var x = startX ? startX : getRandomInt(570) + 50;
+    var y = startY ? startY : getRandomInt(380) + 50;
+    
+    var line1 = new Uint16Array([x, y]);
+    
+    x = x + 25;
+    y = y - 25;
+    var line2 = new Uint16Array([x, y]);
+    
+    x = x + 25;
+    y = y + 25;
+    var line3 = new Uint16Array([x, y]);
+    
+    x = x - 25;
+    y = y + 50;
+    var line4 = new Uint16Array([x, y]);
+    
+    x = x - 25;
+    y = y - 50;
+    var line5 = new Uint16Array([x, y]);    
+    
+    var newList = new Uint16Array([...line1, ...line2, ...line3, ...line4, ...line5]);
+    return ["k", newList];
+    
+  case 11:
+    // Ellipse
+    var x = startX ? startX : getRandomInt(595) + 25;
+    var y = startY ? startY : getRandomInt(380) + 50;
+    var line1 = new Uint16Array([x, y, 65, 35, 0, 0, 2 * Math.PI + 1]);
+    return ["e", line1];
 }
 }
 

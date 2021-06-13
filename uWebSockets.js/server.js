@@ -45,18 +45,24 @@ const mapToList = m => {
 function generateNewRoom(roomName, socketList) {
     newScoreMap = new Map();
     newLinkedList = new importLinked.ExpiringLinkedList(3);
+    var toRemove = [];
     socketList.forEach(item => newScoreMap.set(item.uuid, 0));
-    gameMap.set(roomName, [newScoreMap, newLinkedList]);
+    gameMap.set(roomName, [newScoreMap, newLinkedList, toRemove]);
 }
 
 // shuts down room after someone wins
 function shutDownRoom(roomName, socket, app) {
     msg = JSON.stringify(["GAME OVER", socket.playerName]);
-    app.publish(socket.room, msg, false);  
-    clearInterval(gameMap.get(roomName)[2]);  
+    app.publish(roomName, msg, false);  
+    clearInterval(gameMap.get(roomName)[3]);  
     var uuidsToUnsub = Array.from(gameMap.get(socket.room)[0].keys());
-    uuidsToUnsub.forEach(item => delete wsMap.get(item).room);    
+    uuidsToUnsub.forEach(item => delete wsMap.get(item).room);   
+    gameMap.get(roomName)[2].forEach(item => wsMap.delete(item));     
     gameMap.delete(roomName);
+}
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
 }
 
 function check(socket, message, app) {
@@ -74,7 +80,7 @@ function check(socket, message, app) {
                     console.log("THISTHING", mapToList(currentScoreMap));
                     msg = JSON.stringify(["scoreboard", mapToList(currentScoreMap)]);
                     app.publish(socket.room, msg, false); 
-                    if (currentScoreMap.get(socket.uuid) == 10) {
+                    if (currentScoreMap.get(socket.uuid) == 50) {
                         shutDownRoom(socket.room, socket, app);
                     }
                 }
@@ -88,40 +94,39 @@ function startGameLoop(room) {
     var flag = false;
     var c = setInterval(function() {
         var gameLoop = setInterval(function() {
-        if (flag == false) {
-            msg = JSON.stringify(["scoreboard", mapToList(gameMap.get(room)[0])]);
-            app.publish(room, msg, false); 
-        }
-        flag = true;
-        shape = shapeGen.shapeGen(); 
-        shape2 = shapeGen.shapeGen();
-        shape3 = shapeGen.shapeGen();
-        app.publish(room, JSON.stringify(["drawing", shape[1]]), false); 
-        app.publish(room, JSON.stringify(["drawing", shape2[1]]), false); 
-        app.publish(room, JSON.stringify(["drawing", shape3[1]]), false); 
-        myDict = new Map();
-        var keys = Array.from(gameMap.get(room)[0].keys());
-        keys.forEach(function(key){
-        myDict.set(key, false);    
-        });
-
-        myDict2 = new Map();
-        keys.forEach(function(key){
-        myDict2.set(key, false);    
-        });
-
-        myDict3 = new Map();
-        keys.forEach(function(key){
-        myDict3.set(key, false);    
-        });            
-        gameLinkedList = gameMap.get(room)[1];
-        gameLinkedList.push([shape[0], myDict]); 
-        gameLinkedList.push([shape2[0], myDict2]); 
-        gameLinkedList.push([shape3[0], myDict3]); 
-        count++; 
-        console.log(count);
+         if (typeof gameMap.get(room) !== "undefined") {
+            if (flag == false) {
+                msg = JSON.stringify(["scoreboard", mapToList(gameMap.get(room)[0])]);
+                app.publish(room, msg, false); 
+            }
+            
+            flag = true;
+            var randInt = getRandomInt(25);
+            var keys = Array.from(gameMap.get(room)[0].keys());
+            var gameLinkedList = gameMap.get(room)[1];
+            var shapeList = [];
+            
+            var numToMake = randInt == 0 ? 7 : randInt < 4 ? 5 : 3;
+            for (i = 0; i < numToMake; i++) {
+                shape = shapeGen.shapeGen();
+                shapeList.push(shape);
+                myDict = new Map();
+                keys.forEach(function(key) {
+                    myDict.set(key, false);    
+                    });
+                gameLinkedList.push([shape[0], myDict]);
+            }
+            
+            for (i = 0; i < numToMake; i++) {
+                app.publish(room, JSON.stringify(["drawing", shapeList[i][1]]), false); 
+            }
+         } else {
+            clearInterval(gameLoop);
+         }
         }, 3000);
-    gameMap.get(room).push(gameLoop);
+    if (typeof gameMap.get(room) !== "undefined") {
+        gameMap.get(room)[3] = gameLoop;
+    }
     clearInterval(c);
     }, 4000);
 }
@@ -185,7 +190,15 @@ const app = uWS.App().ws('/*', {  // handle messages from client
   },
   
   close: (socket, code, message) => {
-    wsMap.delete(socket.uuid);
+    if (typeof socket.room !== "undefined") {
+        gameMap.get(socket.room)[2].push(socket.uuid);
+        if (gameMap.get(socket.room)[2].length == 2) {
+            shutDownRoom(socket.room, socket, app);
+        }
+    } else {
+        wsMap.delete(socket.uuid);
+    }
+    
     var index = searchingPlayers.indexOf(socket);
     if (index > -1) {
       searchingPlayers.splice(index, 1);
