@@ -177,7 +177,6 @@ const app = uWS.App().ws("/*", {
       return;
     }
 
-    /* In this simplified example we only have drawing commands */
     if (m[0] == "play" && typeof socket.room == "undefined") {
       if (m[1] != "") {
         socket.playerName = m[1];
