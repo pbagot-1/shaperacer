@@ -13,8 +13,7 @@ const wsMap = new Map();
 var searchingPlayers = [];
 
 const gameMap = new Map();
-// an "app" is much like Express.js apps with URL routes,
-// here we handle WebSocket traffic on the wildcard "/*" route
+
 var diffy = 0;
 function create_UUID(a, b) {
   for (
